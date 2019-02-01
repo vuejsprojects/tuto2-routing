@@ -1,0 +1,140 @@
+<!DOCTYPE html "utf-8">
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <script src="../vue.js"></script>
+    <script src="../vue-router.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <h2>Nested named views</h2>
+        <p><router-link to="settings">Go to settings</router-link></p>
+        <!-- component matched by the route will render here -->
+        <router-view></router-view>
+    </div>
+</body>
+
+<script>
+// /settings/emails                                       /settings/profile
+// +-----------------------------------+                  +------------------------------+
+// | UserSettings                      |                  | UserSettings                 |
+// | +-----+-------------------------+ |                  | +-----+--------------------+ |
+// | | Nav | UserEmailsSubscriptions | |  +------------>  | | Nav | UserProfile        | |
+// | |     +-------------------------+ |                  | |     +--------------------+ |
+// | |     |                         | |                  | |     | UserProfilePreview | |
+// | +-----+-------------------------+ |                  | +-----+--------------------+ |
+// +-----------------------------------+                  +------------------------------+
+
+    const UserSettingsNav = {
+        template: `
+<div class="us__nav">
+  <router-link to="/settings/emails">emails</router-link>
+  <br>
+  <router-link to="/settings/profile">profile</router-link>
+</div>
+`
+    }
+    const UserSettings = {
+        template: `
+<div class="us">
+  <h2>User Settings</h2>
+  <UserSettingsNav/>
+  <router-view class ="us__content"/>
+  <router-view name="helper" class="us__content us__content--helper"/>
+</div>
+  `,
+        components: { UserSettingsNav }
+    }
+
+    const UserEmailsSubscriptions = {
+        template: `
+<div>
+	<h3>Email Subscriptions</h3>
+</div>
+  `
+    }
+
+    const UserProfile = {
+        template: `
+<div>
+	<h3>Edit your profile</h3>
+</div>
+  `
+    }
+
+    const UserProfilePreview = {
+        template: `
+<div>
+	<h3>Preview of your profile</h3>
+</div>
+  `
+    }
+
+    const router = new VueRouter({
+        // The default mode for vue-router is hash mode - it uses 
+        // the URL hash to simulate a full URL so that the page 
+        // won't be reloaded when the URL changes.
+        // To get rid of the hash, we can use the router's history 
+        // mode, which leverages the history.pushState API to 
+        // achieve URL navigation without a page reload
+        // see https://router.vuejs.org/guide/essentials/history-mode.html
+        // mode: 'history',
+        routes: [
+            {
+                path: '/settings',
+                // You could also have named views at tho top
+                component: UserSettings,
+                children: [{
+                    path: 'emails',
+                    component: UserEmailsSubscriptions
+                }, {
+                    path: 'profile',
+                    components: {
+                        default: UserProfile,
+                        helper: UserProfilePreview
+                    }
+                }]
+            }
+        ]
+    })
+
+    //router.push('/settings/emails')
+
+    new Vue({
+        router,
+        el: '#app'
+    })
+</script>
+
+<style>
+.us {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto;
+  grid-template-areas: 
+    "header header"
+    "nav content"
+    "nav helper"
+    ;
+}
+
+h2 {
+  grid-area: header;
+}
+
+.us__nav {
+  grid-area: nav;
+  border: 1px dotted;
+  margin-right: .75rem;
+  padding: .3rem;
+}
+.us__content {
+  grid-area: content;
+}
+.us__content--helper {
+  grid-area: helper;
+}
+</style>
+</html>
